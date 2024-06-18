@@ -8,17 +8,17 @@ const difficulties = [
   {
     id: 1,
     title: "Easy",
-    sequenceLength: 2
+    sequenceLength: 3
   },
   {
     id: 2,
     title: "Medium",
-    sequenceLength: 3
+    sequenceLength: 4
   },
   {
     id: 3,
     title: "Hard",
-    sequenceLength: 4
+    sequenceLength: 5
   },
   /* custom */
 ]
@@ -54,7 +54,7 @@ const DifficultyItem = React.memo(({title, sequenceLength}) => {
 );
 
 
-export default function Tab() {
+export default function PlayTab() { /* start by selecting difficulty, after that we route to game/[difficulty] */
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>

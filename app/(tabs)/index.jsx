@@ -4,7 +4,7 @@ import globalStyles from "../globalStyles";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-export default function Tab() {
+export default function HomeTab() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [welcomeMessage, setWelcomeMessage] = useState("");
