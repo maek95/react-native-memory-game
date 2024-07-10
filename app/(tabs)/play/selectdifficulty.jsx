@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 /* import globalStyles from '../../globalStyles'; */
 import React from 'react';
 import { Link, router } from 'expo-router';
+import { Shadow } from 'react-native-shadow-2';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const difficulties = [
   {
@@ -35,11 +37,12 @@ const DifficultyItem = React.memo(({title, sequenceLength}) => {
   }
 
   return (
+    <Shadow offset={[0, 8]} style={{marginBottom: 40}}>
     
   <TouchableOpacity onPress={() => router.push({
     pathname: `play/game/${title}`,
     params: { title, sequenceLength }
-  })} style={[styles.item, /* {backgroundColor: isDone ? "green" : "black"} */ , {backgroundColor: title === "Easy" ? "green" : title === "Medium" ? "yellow" : title === "Hard" ? "red" : "black" /* black for custom */} ] }> 
+  })} style={[styles.item, /* {backgroundColor: isDone ? "green" : "black"} */ , {backgroundColor: title === "Easy" ? "#00FF00" : title === "Medium" ? "#FFFF00" : title === "Hard" ? "#FF0000" : "black" /* black for custom */} ] }> 
     
       <Text style={styles.itemTitle}>{title}</Text>
       <Text style={styles.itemSequenceLength}>Length: {sequenceLength}</Text> 
@@ -49,7 +52,9 @@ const DifficultyItem = React.memo(({title, sequenceLength}) => {
       navigation.navigate("Details", { title: title, descriptionText: descriptionText, isDone: isDone, id: id})
       }}><FontAwesome name="chevron-right" size={30} color="white" /></TouchableOpacity> */}
   </TouchableOpacity>
-  
+    
+    
+  </Shadow>
   )}
 );
 
@@ -58,6 +63,10 @@ export default function PlayTab() { /* start by selecting difficulty, after that
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
+          <LinearGradient  
+          colors={['rgba(0,0,0,0.2)', 'transparent']}
+          style={styles.background}
+          />{/* SafeAreaView is Teal, and we have a gradient here that has position absolute and is transparent.. */}
        
 
           <Text style={styles.title}>Select Difficulty</Text>
@@ -79,6 +88,13 @@ const styles = StyleSheet.create({
     justifyContent: "start",
     alignItems: "center",
     gap: 48,
+  },
+  background: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 300,
   },
   title: {
     marginTop: 32, /* 48margintop - 16padding from container above */
@@ -102,6 +118,15 @@ const styles = StyleSheet.create({
     justifyContent: "center", 
     flex: 1, /* flatlist does not inherit flex from parent or something */
   },
+  glowContainer: {
+    ...Platform.select({
+      android: {
+        borderRadius: 2,
+        backgroundColor: 'rgba(0, 150, 136, 1)', // Glow color with transparency
+       // elevation: 20,
+      },
+    }),
+  },
   item: {
    /*  flex: 1, */
     width: "100%",
@@ -111,7 +136,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
     padding: 20,
    // marginVertical: 8,
-    marginBottom: 16, // TODO: change to flex gap somehow?
+   /*  ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(0, 150, 136, 1)', // Glow color
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 5,
+      },
+    }), */
+    
+    
+    
+    
   },
   itemTitle: {
     fontSize: 24, 

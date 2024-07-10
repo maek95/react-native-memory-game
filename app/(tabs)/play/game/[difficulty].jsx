@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Context } from "../../../../context";
 import { Path, Svg } from "react-native-svg";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function GameDetail() {
   const [gameIsStarted, setGameIsStarted] = useState(false);
@@ -23,14 +24,21 @@ export default function GameDetail() {
   const [clickCount, setClickCount] = useState(0);
   const [timer, setTimer] = useState(5.0);
   const [correctCount, setCorrectCount] = useState(0);
-  const [timerReady, setTimerReady] = useState(true); 
+  const [timerReady, setTimerReady] = useState(true);
   const [isWinner, setIsWinner] = useState(false);
+  const [wrongClickCount, setWrongClickCount] = useState(0);
 
-  // time penalty if click wrong slice, how update the timer that is already running?
+  // TODO: time penalty if click wrong slice, how update the timer that is already running?
   useEffect(() => {
-    if (sequenceComplete === true && timerReady) {
+    if (sequenceComplete && timerReady) {
       const timerInterval = setInterval(() => {
-        setTimer((prevTimer) => Math.max(prevTimer - 0.1, 0).toFixed(1));
+        setTimer((prevTimer) => {
+          const newTime = Math.max(prevTimer - 0.1, 0).toFixed(1); // newTime variable so we can keep track of the actual timer and trigger the if-statement below
+          if (newTime == 0) {
+            setGameIsStarted(false); // turns false when time reaches 0, i.e. time is up.
+          }
+          return newTime;
+        });
       }, 100);
 
       return () => clearInterval(timerInterval);
@@ -41,7 +49,7 @@ export default function GameDetail() {
     if (correctCount == sequenceLength) {
       setTimerReady(false); // Stop the timer when all sequences are correct
       setIsWinner(true);
-      setGameIsStarted(false);
+      setGameIsStarted(false); // game has ended if user clicked on all correct slices!
     }
   }, [correctCount, sequenceLength]);
 
@@ -94,7 +102,7 @@ export default function GameDetail() {
       if (slice === pattern[clickCount]) {
         console.log("correct!");
         /*  setActiveSlice(slice); */
-        setCorrectCount(prevCorrectCount => prevCorrectCount + 1);
+        setCorrectCount((prevCorrectCount) => prevCorrectCount + 1);
         setAnimatedColor("green");
 
         const animatedOpacity =
@@ -108,6 +116,7 @@ export default function GameDetail() {
         }).start();
       } else {
         console.log("wrong!");
+        setWrongClickCount((prevClickCount) => prevClickCount + 1);
         setClickCount(
           (prevClickCount) => prevClickCount - 1
         ); /* e.g. if the first slice is 1 and you click 2, you still have to click 1 to get "correct" until you can guess the next slice in the pattern */
@@ -138,7 +147,9 @@ export default function GameDetail() {
   useEffect(() => {
     if (gameIsStarted) {
       console.log("sequence length: ", sequenceLength);
+      setIsWinner(false);
       setCorrectCount(0);
+      setWrongClickCount(0);
       setAnimatedColor("purple");
       setPattern([]);
       setClickCount(0);
@@ -209,21 +220,51 @@ export default function GameDetail() {
 
   return (
     <View style={styles.container}>
-      {(timer == 0 || correctCount == sequenceLength) && ( 
+      <LinearGradient
+        colors={["rgba(0,0,0,0.2)", "transparent"]}
+        style={styles.background}
+      />
+      {/* container is Teal, and we have a gradient here that has position absolute and is transparent.. */}
+      {(timer == 0 || correctCount == sequenceLength) && (
         <View style={styles.gameFinishedView}>
-         {/*  <Text style={[{ color: "white" }, styles.gameFinishedText]}>Game Finished</Text> */}
-          {isWinner ? <Text style={[{ color: "green" }, styles.gameFinishedText]}>Winner!</Text> : <Text style={[{ color: "red" }, styles.gameFinishedText]}>You Lost!</Text>}
+          {/*  <Text style={[{ color: "white" }, styles.gameFinishedText]}>Game Finished</Text> */}
+          {isWinner ? (
+             wrongClickCount > 0 ?
+             
+            ( <>
+             <Text style={[{ color: "blue" }, styles.gameFinishedText]}>
+             Decent!
+           </Text>
+             <Text style={{ color: "red", fontWeight: "bold" }}>
+             Wrong clicks: {wrongClickCount}
+           </Text>
+           </>)
+             : (
+              <Text style={[{ color: "blue" }, styles.gameFinishedText]}>
+                Perfect!
+              </Text>
+            )
+          ) : (
+            <Text style={[{ color: "#FF0000" }, styles.gameFinishedText]}>
+              You Lost!
+            </Text>
+          )}
+          
 
           <TouchableOpacity
-              onPress={() => {
-                setSequenceComplete(false);
-                setGameIsStarted(true);
-              }}
-              style={styles.startButton}
-            >
-              <Text style={styles.startButtonText}>Play Again</Text>
-              <FontAwesome name="play" color={"white"} size={32} />
-            </TouchableOpacity>
+            onPress={() => {
+              setGameIsStarted(false); // change to true if we want the game to instantly start again rather than going to Start button again
+              setCorrectCount(0); // to remove gameFinishedView
+              setTimer(5.0); // to remove gameFinishedView
+              animatedOpacities.forEach((animatedOpacity) =>
+                animatedOpacity.setValue(0)
+              ); // Reset animated values, otherwise some animation linger into next game
+            }}
+            style={styles.startButton}
+          >
+            <Text style={styles.startButtonText}>Play Again</Text>
+            <FontAwesome name="play" color={"white"} size={32} />
+          </TouchableOpacity>
         </View>
       )}
       {gameIsStarted ? (
@@ -342,6 +383,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "teal",
   },
+  background: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 300,
+  },
   sequenceCompleteMessage: {
     fontSize: 30,
     color: "white",
@@ -364,7 +412,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderStyle: "solid",
     borderWidth: 1,
-    borderColor: "white",
+    borderColor: "lightblue",
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
@@ -398,17 +446,21 @@ const styles = StyleSheet.create({
     zIndex: 50,
     position: "absolute",
     height: 420,
-    width: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.95)", // Apply opacity to the background color only
+    borderRadius: 32,
+    width: "90%",
+    backgroundColor: "lightblue", // Apply opacity to the background color only
+    //backgroundColor: "white",
     /* backgroundColor: "black", */
     /* opacity: 0.5, */
+    /* borderWidth: 20,
+    borderColor: "white", */
   },
   gameFinishedText: {
-   /*  zIndex: 60, */
+    /*  zIndex: 60, */
     /* opacity: 1, */
     textAlign: "center",
     fontSize: 48,
     fontWeight: "bold",
     /* color: "white", */
-  }
+  },
 });

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import globalStyles from "../globalStyles";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function HomeTab() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -43,6 +44,10 @@ export default function HomeTab() {
   return (
     <SafeAreaProvider>
     <SafeAreaView style={styles.container}>
+      <LinearGradient  
+          colors={['rgba(0,0,0,0.2)', 'transparent']}
+          style={styles.background}
+          />{/* SafeAreaView is Teal, and we have a gradient here that has position absolute and is transparent.. */}
       <View style={globalStyles.mainTitleContainer}>
         <Text style={globalStyles.mainTitle}>CHAS MEMORY</Text>
       </View>
@@ -75,6 +80,13 @@ const styles = StyleSheet.create({
     padding: 16,
     justifyContent: "center",
     alignItems: "center",
+  },
+  background: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 300,
   },
   buttonContainer: {
     width: "100%",
